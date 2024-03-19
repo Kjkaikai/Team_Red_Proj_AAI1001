@@ -104,19 +104,17 @@ knitr::include_graphics("kuwait-lebanon-fertility rate.png")
 ```
 
 
-
-
 ## Describe any improvements you intend to incorporate. {#improvements}
 
-Firstly, incorporation of a World Map overlay is planned, aimed at geographically contextualizing fertility rate and population data. This integration will significantly assist usability by helping users pinpoint countries and comprehend regional demographic trends.
+1. Implement a World Map overlay to contextualize fertility rate and population data geographically, enhancing usability and comprehension of regional demographic trends.
 
-The representation of fertility rates will be improved through the adoption of a color gradient for each country. This method will ensure the map provides a clear, visual distinction between different fertility levels, facilitating immediate recognition of demographic variations.
+2. Utilize a sequential ColorBrewer palette [(Colorbrewer 2.0 2013)](#ref2) for each country to represent fertility rates, allowing easy recognition of demographic variations. In addition, the assessment of suitability for colorblind viewers will be evaluated with the 'colorblindcheck' package in R to ensure accessibility.
 
-To further improve user interactivity, the visualization will include semi-transparent hover tooltips. These are intended to present detailed statistics for each country, such as fertility rate and population size, without obscuring other data on the map.
+3. Introduce semi-transparent hover tooltips to provide detailed statistics for each country, namely fertility rate and population size, without obscuring the map.
 
-In addition, a zoom functionality will be included which activates upon clicking on a country on the map. This feature will enable a closer examination of a country's demographic details by providing a magnified view. This feature aims to facilitate a more details of fertility rate.
+4. Add a zoom function that activates upon clicking a country, enabling a detailed examination of demographic details and facilitating an in-depth understanding of fertility rates.
 
-Lastly, the integration of a search function will be designed to expedite the process of locating and examining data for specific countries, which will enable a more personalized exploration of the data.
+5. Integrate a search function to quickly locate and examine data for specific countries, enabling personalized data exploration.
 
 
 ## Data Cleaning {#data-cleaning}
@@ -221,7 +219,7 @@ By incorporating colour schema into a world map, it makes the graph more aesthet
 ## References {#reference}
 
  1. [Network, T. L]{#ref1}. (2023, November 9). What’s Going On in This Graph? | Global Population Growth and Decline. The New York Times. Global Population Growth and Decline. The New York Times [https://www.nytimes.com/2023/11/09/learning/whats-going-on-in-this-graph-nov-15-2023.html](https://www.nytimes.com/2023/11/09/learning/whats-going-on-in-this-graph-nov-15-2023.html)
-‌
+ 2. [Cynthia Brewer, Mark Harrower and The Pennsylvania State University]{#ref2}. (2013). Colorbrewer 2.0. ColorBrewer. [https://colorbrewer2.org/#type=sequential&scheme=BuGn&n=3](https://colorbrewer2.org/#type=sequential&scheme=BuGn&n=3)
 
 
 
