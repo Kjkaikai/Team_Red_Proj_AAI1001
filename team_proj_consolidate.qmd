@@ -1,0 +1,225 @@
+---
+title: "AAI1001-Data Engineering and Visualization 
+Project Proposal"
+author: "Team Red - Axel Goh(2203412), Jeffrey Mak Chee Hong(2201194), Tristan Raj Shankar(2203491), Ruchel Lee Wen Xuan(2202719), Yong Kai Jie(2203201)"
+format: html
+---
+
+In this project proposal document, the following RStudio packages will be utilised:
+
+```{r}
+#| label: setup
+#| warning: false
+
+library(tidyverse)
+library(knitr)
+library(readxl)
+library(dplyr)
+library(tibble)
+library(ggbeeswarm)
+library(ggplot2)
+library(sf)
+library(rnaturalearth)
+```
+
+
+# Team Project Proposal
+
+Visualizing global fertility rates against country populations from U.N. World Population Prospects 2022.
+
+
+# Section
+
+Our project proposal comprises of the following sections:
+
+1. [Original Data Visualization from New York Times](#original-data-vis)
+2. [Critical Assessment of the Original Visualization](#critical-assessment)
+3. [Proposed Improvements](#improvements)
+4. [Data Cleaning](#data-cleaning)
+5. [Conclusion](#conclusion)
+6. [References](#reference)
+
+
+# Original Data Visualization from New York Times {#original-data-vis}
+
+The chosen data visualisation [Figure 1](#fig1) is a bubble chart from the U.N. World Population Prospects 2022, showing global fertility rates against country populations. The size of each bubble corresponds to the population of the country, while the position on the vertical axis indicates the total fertility rate, which is the number of births a woman would have if she followed the average pattern of births in her country during her lifetime. 
+
+The significance of this visualisation lies in its clear depiction of a key demographic indicator: the total fertility rate (TFR). [Sarah Chadorsh](#ref1) from New York Times illustrates a fundamental shift in population trends, where most of the world now has below-replacement fertility, meaning that the average number of children per woman is less than the number needed to maintain the current population level. A rate of about [2.1 children per woman](#ref1) is considered replacement level fertility, taking into account additional births needed to compensate for child mortality and sex ratio imbalances at birth.
+
+This [graph](#fig1) also highlights the contrast between countries with high fertility rates, primarily in Africa, and those with low rates, such as in Europe and East Asia. This information is crucial for understanding future demographic shifts, challenges of population decline, issues of an aging population, and the economic and social policy adjustments that might be needed to accommodate these changes
+
+The chart's significance is in demonstrating these contrasting trends and their implications for population growth, economic policy, and social change. 
+
+
+### Countries fertility rate {#fig1}
+```{r}
+#| label: fig1
+#| fig-cap: "Figure 1: Visualization of global fertility rates against country populations from U.N. World Population Prospects 2022 by Sara Chodosh (2022)."
+knitr::include_graphics("PopulationGraph.jpeg")
+```
+
+# Critical Assessment of the Original Visualization {#critical-assessment}
+
+The graphical representation aims to exhibit three variables: country population (quantitative), fertility rate (quantitative), and the categorization of fertility rates with respect to the replacement level (categorical). The choice to depict population through bubble size is judicious, providing an immediate visual cue to the viewer about the relative population sizes among countries.
+
+Employing the y-axis for the fertility rate is appropriate and traditional, offering a straightforward interpretation of fertility rates in comparison to one another. The color coding to distinguish countries below and above the replacement fertility rate is an effective use of visual contrast, aiding rapid differentiation.
+
+Furthermore, the annotated threshold for replacement fertility lends crucial context, clarifying the pivotal fertility rate at which a population replaces itself from one generation to the next without external influences.
+
+We have analysed the graph and listed out it strengths and weaknesses: 
+
+**Strengths**:
+
+1. Colour Contrast: The graph effectively uses color to differentiate between countries with below-replacement and above-replacement fertility rates. Countries below the replacement level are highlighted in red, facilitating quick visual identification.
+
+2. Bubble Size for Population Comparison: Varying bubble sizes offer a visual comparison of country populations, allowing viewers to quickly discern which countries have larger or smaller populations relative to others.
+
+3. Y-Axis for Fertility Rates: The y-axis is clearly labeled to indicate fertility rates, making it easy for viewers to understand the fertility rate of each country in relation to others.
+
+**Areas for Improvement**:
+
+1. Data Points Beyond Y-Axis: Some data points exceed the bounds of the y-axis, potentially leading to confusion or misinterpretation of the data.
+
+2. Alignment on Y-Axis: Countries sharing the same fertility rate are not perfectly aligned horizontally, complicating direct comparisons as shown in [Figure 2](#fig2).
+
+3. Population Size Precision: Precisely gauging population sizes from bubble sizes is challenging, as the legend indicates only three population bubble sizes: 100,000; 100 million; and 1 billion shown in [Figure 1](#fig1).
+
+4. Inconsistent Colour Coding: Inconsistencies in colour coding are observed, where some countries below the replacement fertility rate are not marked in red, leading to potential misinterpretation of the data shown in [Figure 2](#fig2) .
+
+5. Inconsistent Labelling: Bubbles without labels offer a hover-on description showing the specific country's fertility rate, but those labeled with the country name lack this option limiting data accessibility. An example would be the India's bubble in [Figure 2](#fig2), where there is no hover on effect.
+
+6. Country Identification: Identifying specific countries quickly is challenging due to the graph's density and lack of an interactive element for highlighting or searching for a country.
+
+7. Visibility of Population Size: The overlap and varying sizes of bubbles obscure the actual population size for each country.
+
+8. Hover Functionality: The absence of hover functionality for labeled bubbles restricts viewers from accessing additional information easily, diminishing the visualization's interactivity and educational value.
+
+9. Missing Population Data on Hover: When hovering over bubbles, population size or other pertinent data is not displayed, which would have been beneficial for viewers seeking detailed information from [Figure 2](#fig2).
+
+### India Vs Kuwait fertility rate {#fig2}
+```{r}
+#| label: fig2
+#| fig-cap: "Figure 2: Inconsistencies in Fertility Rate Representation - Despite identical fertility rates, the visualization reveals a lack of consistent coloring and alignment among countries, with disparities in the positioning along the shared y-axis value."
+knitr::include_graphics("kuwait-lebanon-fertility rate.png")
+```
+
+
+
+
+## Describe any improvements you intend to incorporate. {#improvements}
+
+Firstly, incorporation of a World Map overlay is planned, aimed at geographically contextualizing fertility rate and population data. This integration will significantly assist usability by helping users pinpoint countries and comprehend regional demographic trends.
+
+The representation of fertility rates will be improved through the adoption of a color gradient for each country. This method will ensure the map provides a clear, visual distinction between different fertility levels, facilitating immediate recognition of demographic variations.
+
+To further improve user interactivity, the visualization will include semi-transparent hover tooltips. These are intended to present detailed statistics for each country, such as fertility rate and population size, without obscuring other data on the map.
+
+In addition, a zoom functionality will be included which activates upon clicking on a country on the map. This feature will enable a closer examination of a country's demographic details by providing a magnified view. This feature aims to facilitate a more details of fertility rate.
+
+Lastly, the integration of a search function will be designed to expedite the process of locating and examining data for specific countries, which will enable a more personalized exploration of the data.
+
+
+## Data Cleaning {#data-cleaning}
+
+
+Read xlsx UN_PPP2022
+
+Datasets Used include: Demographic Indicators from : https://population.un.org/wpp/Download/Standard/MostUsed/ Which include total population as of 1 January in the thousands
+
+New York Times based their visualization on data by UN World Population Prospects 2022, available in CSV format with each row representing a country and its demographic statistics like population, fertility rate. The data is available in the following link: https://population.un.org/wpp/Download/Standard/MostUsed/. Below is a summary of the data using glimpse() and summary()
+
+
+```{r}
+#| label: "import"
+#| include: false
+
+##Read xlsx remove the first 15 rows, Access the "Median" sheet
+UN_PPP2022 <- read_excel("WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx", skip = 15, sheet = "Estimates")
+#WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1
+
+#Set first row as column and drop the row
+colnames(UN_PPP2022) <- UN_PPP2022[1,]
+UN_PPP2022 <- UN_PPP2022[-1,]
+##Look for "index" set that as the column row
+
+```
+
+
+### Glimpsed Data
+
+```{r}
+#| label: "glimpse"
+
+glimpse(UN_PPP2022)
+
+```
+
+
+### Summary of Data
+
+```{r}
+#| label: "summary"
+
+summary(UN_PPP2022)
+
+```
+
+
+Relevant columns for data processing include:
+
+1. Country: Name of the country
+
+2. Fertility Rate: The average number of children per woman
+
+3. Population: Population size of a country by the thousands (eg: 1 = 1 Thousand people)
+
+4. Country Code: IS0-3 Format, Country abbreviated in the form “BDI” (Burundi), “COM” (Comoros), etc.
+
+Data Cleaning Process
+
+The data was cleaned by removing the first 15 rows, setting the first row as the column names, removing all rows where the ISO3 Alpha-code is NA, keeping only rows where the year is 2021, and keeping only the columns "Region, subregion, country or area", "Total Fertility Rate (live births per woman)"
+
+This is because the data included multitude of other information that was not relevant, to extract out purely each countries information, we used only rows where ISO3 Alpha-code was not NA, and the year was 2021. We also renamed the columns to be more readable and arranged the data by fertility rate.
+
+
+```{r}
+#| label: "cleaning"
+#| echo: false
+
+
+##Remove all rows where IS03 Alpha-code is NA
+UN_PPP2022 <- UN_PPP2022[!is.na(UN_PPP2022$`ISO3 Alpha-code`),]
+
+##Keep only rows where Year is 2021
+UN_PPP2022 <- UN_PPP2022[UN_PPP2022$Year == 2021,]
+##Keep Only "Region,subregion,country or area" as Country, and the year 2022 as the population
+UN_PPP2022 <- UN_PPP2022 %>% select(`Region, subregion, country or area *`, `Total Fertility Rate (live births per woman)`, `Total Population, as of 1 January (thousands)`,`ISO3 Alpha-code`)
+
+##Rename first column to Country, Second Column to Fertility Rate, Third Column to Population, Fourth Column to Country Code
+colnames(UN_PPP2022) <- c("Country", "Fertility Rate", "Population", "Country Code")
+##Arrange by fertility rate
+UN_PPP2022 <- UN_PPP2022 %>% arrange(desc(`Fertility Rate`))
+                                                                 
+head(UN_PPP2022)
+
+
+```
+
+
+
+## Conclusion {#conclusion}
+
+
+The project aims to elevate the bubble plot graph from The New York Times which visualises population size versus fertility rate. The data-set has been sufficiently cleaned and is ready for the next stage of the project. The RStudio packages 'ggplot2' and 'leaflet' will be used to create a visually appealing and interactive chloropleth world-map. 
+
+By incorporating colour schema into a world map, it makes the graph more aesthetically appealing to audiences. Hence, this allows the audiences to be able to explore regional trends and patterns better, enhancing the graph's analytical  depth and also narrative impact. 
+
+## References {#reference}
+
+ 1. [Network, T. L]{#ref1}. (2023, November 9). What’s Going On in This Graph? | Global Population Growth and Decline. The New York Times. Global Population Growth and Decline. The New York Times [https://www.nytimes.com/2023/11/09/learning/whats-going-on-in-this-graph-nov-15-2023.html](https://www.nytimes.com/2023/11/09/learning/whats-going-on-in-this-graph-nov-15-2023.html)
+‌
+
+
+
+
+
