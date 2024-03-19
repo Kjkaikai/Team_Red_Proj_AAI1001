@@ -202,6 +202,10 @@ UN_PPP2022 <- UN_PPP2022 %>% arrange(desc(`Fertility Rate`))
                                                                  
 head(UN_PPP2022)
 
+##Output as cleaned csv
+write.csv(UN_PPP2022, "UN_PPP2022_cleaned.csv")
+
+
 
 ```
 
@@ -218,6 +222,7 @@ By incorporating colour schema into a world map, it makes the graph more aesthet
 
  1. [Network, T. L]{#ref1}. (2023, November 9). What’s Going On in This Graph? | Global Population Growth and Decline. The New York Times. Global Population Growth and Decline. The New York Times [https://www.nytimes.com/2023/11/09/learning/whats-going-on-in-this-graph-nov-15-2023.html](https://www.nytimes.com/2023/11/09/learning/whats-going-on-in-this-graph-nov-15-2023.html)
 ‌
+
 
 
 
