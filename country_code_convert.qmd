@@ -1,0 +1,80 @@
+---
+title: "Team_red_Proj_Final"
+format: html
+---
+
+```{r}
+#| label: setup
+#| warning: false
+
+library(tidyverse)
+library(knitr)
+library(readxl)
+library(sf)
+library(cartogram)
+library(dplyr)
+library(tibble)
+library(ggbeeswarm)
+library(rnaturalearth)
+library(mapSpain)
+library(countrycode)
+
+library(ggplot2)
+```
+
+
+```{r}
+data <- read.csv("UN_PPP2022_cleaned.csv")
+
+data
+
+```
+
+
+
+
+```{r}
+world <- map_data("world")
+
+world
+
+
+
+```
+
+
+```{r}
+#csv_file_path <- "world_data.csv"
+
+#write.csv(world, csv_file_path, row.names = FALSE)
+
+```
+
+
+```{r}
+data$ISO3 <- countrycode(data$Country, "country.name", "iso3c")
+world$ISO3 <- countrycode(world$region, "country.name", "iso3c")
+
+
+lookup_table <- world |> 
+  distinct(ISO3, region) |>
+  drop_na(ISO3) 
+
+data2 <- data |>
+  left_join(lookup_table, by = "ISO3") |>
+  mutate(Country = if_else(is.na(region), Country, region)) |>
+  select(-region, -ISO3)  
+
+
+data2
+
+
+```
+
+```{r}
+csv_file_path <- "clean.csv"
+
+# Export the data frame to a CSV file
+write.csv(data2, csv_file_path, row.names = FALSE)
+
+```
