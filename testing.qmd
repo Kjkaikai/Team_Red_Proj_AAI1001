@@ -1,0 +1,75 @@
+---
+title: "Trying out world map"
+author: "Axel"
+format: html
+---
+
+# Creating a interactive choropleth world map 
+
+```{r}
+library(gapminder)
+library(ggplot2)
+library(plotly)
+library(dplyr)
+library(ggthemes)
+library(RColorBrewer)
+```
+
+```{r}
+world <- map_data("world") %>%
+  filter(region != "Antarctica")
+
+##Search for USA or Russia
+
+```
+
+```{r}
+data <- read.csv("clean.csv")
+data
+
+
+data <- data |>
+  mutate(Fertility = as.numeric(Fertility))
+
+data
+
+
+```
+
+
+
+
+```{r}
+# Set figure dimensions
+#| fig.width=7
+#| fig.height=5
+
+
+
+# Display all Brewer palettes
+display.brewer.all()
+
+# Filter Gapminder data and join with world map data
+  mapa_animado_3 <- data %>%
+  right_join(world, by = c(Country = "region")) %>%
+  ggplot(aes(long, lat, group = group, fill = `Fertility`)) +
+  geom_polygon(color = "white", size = 0.01) +
+  theme_void() +
+  scale_fill_distiller(palette = "Spectral", name = "Fertility Rate") + # Use a continuous palette
+  labs(title = "Population & Fertility Rate", subtitle = "year: 2022")  +
+  theme(
+    plot.title = element_text(size = 12, hjust = 0.5),
+    plot.subtitle = element_text(size = 10, hjust = 0.5),
+    plot.caption = element_text(size = 8, hjust = 1)
+  ) +
+  coord_fixed(ratio = 1.3)
+
+# Convert ggplot object to a ggplotly object
+fig_3 <- ggplotly(mapa_animado_3)
+
+fig_3
+
+```
+
+
+
