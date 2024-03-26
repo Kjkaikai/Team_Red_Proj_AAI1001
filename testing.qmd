@@ -2,6 +2,7 @@
 title: "Trying out world map"
 author: "Axel"
 format: html
+
 ---
 
 # Creating a interactive choropleth world map 
@@ -27,18 +28,26 @@ world <- map_data("world") %>%
 ## Cleaning and processing of data, outputing top 5 rows
 
 ```{r}
-data <- read.csv("/private/clean.csv")
+data <- read.csv("/private/test.csv")
 head(data)
 
 
 data <- data %>%
-  mutate(Fertility = as.numeric(as.character(Fertility.Rate)))
+  mutate(Fertility = as.numeric(as.character(Fertility)))
 head(data)
 ```
 
-
+Baseline code for the Map 
 ```{r}
 
+#| include = FALSE
+#| 
+# Set figure dimensions
+#| fig.width=7
+#| fig.height=5
+
+# Display all Brewer palettes
+display.brewer.all()
 
 # Filter Gapminder data and join with world map data
   mapa_animado_3 <- data %>%
@@ -61,22 +70,17 @@ fig_3 <- ggplotly(mapa_animado_3)
 fig_3
 
 ```
-Updated generation of Map with hover text
+Trying to add hovertext with data and data Frame 
 ```{r}
-
-# Set figure dimensions
-#| fig.width=7
-#| fig.height=5
-
-# Display all Brewer palettes
-display.brewer.all()
 # Assuming 'world' and 'data' are already loaded and prepared
 # Create a hover text column in 'data'
-data$hover_text <- paste("Country: ", data$Country, "<br>Fertility Rate: ", data$Fertility)
+data$hover_text <- paste("Country: ", data$Country, "<br>Fertility Rate: ", data$Fertility, "<br>Population: ", data$Population)
+
+joined_data <- data %>%
+  right_join(world, by = c(Country = "region"))
 
 # Proceed with your plotting
-mapa_animado_3 <- data %>%
-  right_join(world, by = c(Country = "region")) %>%
+mapa_animado_3 <- joined_data %>%
   ggplot(aes(x = long, y = lat, group = group, fill = Fertility, text = hover_text)) + # Added 'text' aesthetic for custom hover info
   geom_polygon(color = "white", size = 0.01) +
   theme_void() +
@@ -91,62 +95,20 @@ mapa_animado_3 <- data %>%
 
 # Convert ggplot object to a ggplotly object with hoverinfo
 fig_3 <- ggplotly(mapa_animado_3, tooltip = "text") # Specify 'text' to use the 'text' aesthetic for the tooltip
+fig_3
 ```
 
-
- 
-Trying it on SHINY server
+displaying my joined_data into a dataframe and remove repeated country names 
 ```{r}
-library(shiny)
+joined_data <- joined_data %>%
+  distinct(Country, .keep_all = TRUE)
 
-ui <- fluidPage(
-  titlePanel("Interactive World Map and Data Table"),
-  plotlyOutput("worldMap"),
-  DTOutput("dataTable")
-)
+datatable(joined_data, options = list(autoWidth = TRUE))
 
-server <- function(input, output, session) {
-  # Initialize selected_country with all countries to display the full table initially
-  all_countries <- unique(data$Country)
-  selected_country <- reactiveVal(all_countries)
-  
-  # Render the world map
-  output$worldMap <- renderPlotly({
-    p <- data %>%
-      right_join(map_data("world") %>% filter(region != "Antarctica"), by = c(Country = "region")) %>%
-      ggplot(aes(x = long, y = lat, group = group, fill = Fertility)) +
-      geom_polygon(color = "white", size = 0.01) +
-      theme_void() +
-      scale_fill_distiller(palette = "Spectral", name = "Fertility Rate") +
-      labs(title = "Population & Fertility Rate", subtitle = "year: 2022") +
-      theme(
-        plot.title = element_text(size = 12, hjust = 0.5),
-        plot.subtitle = element_text(size = 10, hjust = 0.5),
-        plot.caption = element_text(size = 8, hjust = 1)
-      ) +
-      coord_fixed(ratio = 1.3)
-      
-    ggplotly(p, source = "worldMap") %>%
-      layout(dragmode = "select")
-  })
-
-  # Update selected_country based on map click
-  observe({
-    click_data <- event_data("plotly_click", source = "worldMap")
-    if (!is.null(click_data)) {
-      # Update to filter by clicked country; adjust based on actual data structure
-      selected_country(click_data$pointNumber + 1) # Example adjustment; use correct identifier
-    }
-  })
-
-  # Render DataTable based on selection from the map
-  output$dataTable <- renderDT({
-    # Filter data based on selected country; shows all if none selected
-    filtered_data <- data %>%
-      filter(Country %in% selected_country())
-    datatable(filtered_data, options = list(lengthChange = FALSE, searching = FALSE))
-  })
-}
-
-shinyApp(ui, server)
 ```
+
+```{r}
+
+
+
+
