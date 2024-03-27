@@ -2,7 +2,6 @@
 title: "Trying out world map"
 author: "Axel"
 format: html
-
 ---
 
 # Creating a interactive choropleth world map 
@@ -70,6 +69,7 @@ fig_3 <- ggplotly(mapa_animado_3)
 fig_3
 
 ```
+
 Trying to add hovertext with data and data Frame 
 ```{r}
 # Assuming 'world' and 'data' are already loaded and prepared
@@ -77,7 +77,7 @@ Trying to add hovertext with data and data Frame
 data$hover_text <- paste("Country: ", data$Country, "<br>Fertility Rate: ", data$Fertility, "<br>Population: ", data$Population)
 
 joined_data <- data %>%
-  right_join(world, by = c(Country = "region"))
+  right_join(world, by = c(Country = "region")) 
 
 # Proceed with your plotting
 mapa_animado_3 <- joined_data %>%
@@ -100,14 +100,91 @@ fig_3
 
 displaying my joined_data into a dataframe and remove repeated country names 
 ```{r}
-joined_data <- joined_data %>%
-  distinct(Country, .keep_all = TRUE)
+
+joined_data <- data %>%
+  right_join(world, by = c(Country = "region")) %>%
+    distinct(Country, .keep_all = TRUE)
 
 datatable(joined_data, options = list(autoWidth = TRUE))
 
 ```
 
+Trying out Animation element to my map 
 ```{r}
+library(shiny)
+library(plotly)
+library(ggplot2)
+library(dplyr)
+
+
+# Data preparation
+
+# Data preparation
+  data <- read.csv("/private/test.csv") # Adjust path as necessary
+  data <- data %>%
+    mutate(Fertility = as.numeric(as.character(Fertility)),
+  hover_text = paste("Country: ", Country, "<br>Fertility Rate: ", Fertility, "<br>Population: ", Population))  # Add 'hover_text' here after 'data' is defined
+
+# UI definition
+  
+  world <- map_data("world") %>%
+    filter(region != "Antarctica")
+  
+  joined_data <- data %>%
+    right_join(world, by = c(Country = "region"))
+    
+
+ui <- fluidPage(
+  titlePanel("Interactive World Map and Data Table"),
+  actionButton("toggle_fertility", "Countries below fertility rate "),
+  plotlyOutput("worldMap")
+)
+
+server <- function(input, output, session) {
+  # Reactive value to track the toggle state
+  show_filtered <- reactiveVal(FALSE)
+  
+  # Observe the toggle button click
+  observeEvent(input$toggle_fertility, {
+    # Toggle the state
+    current_state <- show_filtered()
+    show_filtered(!current_state)
+  })
+  
+  output$worldMap <- renderPlotly({
+    # Conditional color mapping based on 'show_filtered()' state
+    color_mapping <- if(show_filtered()) {
+      aes(fill = ifelse(Fertility < 2.1, Fertility, NA))
+    } else {
+      aes(fill = Fertility)
+    }
+    
+    mapa_animado_3 <- joined_data %>%
+      ggplot(aes(x = long, y = lat, group = group, text = hover_text)) +
+      geom_polygon(color = "white", size = 0.01, color_mapping) +
+      scale_fill_distiller(palette = "Spectral", name = "Fertility Rate",
+                           na.value = "grey", limits = range(joined_data$Fertility, na.rm = TRUE)) +
+      theme_void() +
+      labs(title = "Population & Fertility Rate", subtitle = "year: 2022") +
+      theme(
+        plot.title = element_text(size = 12, hjust = 0.5),
+        plot.subtitle = element_text(size = 10, hjust = 0.5),
+        plot.caption = element_text(size = 8, hjust = 1)
+      ) +
+      coord_fixed(ratio = 1.3)
+    
+    ggplotly(mapa_animado_3, tooltip = "text")
+  })
+}
+
+shinyApp(ui, server)
+
+```
+
+```{r}
+
+```
+
 
 
 
