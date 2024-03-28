@@ -118,6 +118,7 @@ library(shiny)
 library(plotly)
 library(ggplot2)
 library(dplyr)
+library(RColorBrewer)
 
 # Data preparation
   data <- read.csv("/private/test.csv") # Adjust path as necessary
@@ -169,37 +170,53 @@ server <- function(input, output, session) {
     filtered_data <- reactive({
       dataset <- joined_data %>%
         filter(Fertility >= input$fertility_range[1], Fertility <= input$fertility_range[2])
-      
       if (highlight_low_fertility()) {
-        dataset <- dataset %>%
-          mutate(Fertility_highlight = ifelse(Fertility < 2.1, Fertility, NA))
-      } else {
-        dataset <- dataset %>%
-          mutate(Fertility_highlight = Fertility)
+        dataset$Fertility <- ifelse(dataset$Fertility < 2.1, dataset$Fertility, NA)
       }
-      
       dataset
     })
     
+    # Define the static breaks and corresponding colors
+    colors <- colorRampPalette(rev(brewer.pal(9, name = "YlOrRd")))(7)
+    
     # Proceed with plotting using the reactively filtered dataset
-    mapa_animado_3 <- filtered_data() %>%
-      ggplot(aes(x = long, y = lat, group = group, fill = Fertility_highlight, text = hover_text)) +
+    mapa_animado_3 <- ggplot(filtered_data(), aes(x = long, y = lat, group = group, fill = Fertility, text = hover_text)) +
       geom_polygon(color = "white", size = 0.01) +
       theme_void() +
-      scale_fill_distiller(palette = "Spectral", name = "Fertility Rate", na.value = "grey") +
-      labs(title = "Population & Fertility Rate", subtitle = "Filtered by year: 2022") +
-      theme(plot.title = element_text(size = 12, hjust = 0.5),
-            plot.subtitle = element_text(size = 10, hjust = 0.5),
-            plot.caption = element_text(size = 8, hjust = 1)) +
+      scale_fill_gradientn(
+        colours = colors,
+        values = scales::rescale(c(0, 1, 2, 3, 4, 5, 6, 7), to = c(0, 1)),
+        breaks = c(1, 2, 3, 4, 5, 6, 7),
+        labels = c("1", "2", "3", "4", "5", "6", "7"),
+        guide = guide_colorbar(
+          title = "Fertility Rate",
+          title.position = "top",
+          title.hjust = 0.5,
+          barheight = unit(2, "in")
+        ),
+        na.value = "gray90",
+        limits = c(0, 7)
+      ) +
+      labs(
+        title = "Population & Fertility Rate",
+        subtitle = "Filtered by year: 2022"
+      ) +
+      theme(
+        plot.title = element_text(size = 12, hjust = 0.5),
+        plot.subtitle = element_text(size = 10, hjust = 0.5),
+        plot.caption = element_text(size = 8, hjust = 1)
+      ) +
       coord_fixed(ratio = 1.3)
-    
+
     ggplotly(mapa_animado_3, tooltip = "text")
   })
 }
 
 shinyApp(ui, server)
 
+
 ```
+
 
 
 
