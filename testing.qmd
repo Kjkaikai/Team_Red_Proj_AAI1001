@@ -110,14 +110,14 @@ datatable(joined_data, options = list(autoWidth = TRUE))
 ```
 
 Trying out Animation element to my map 
+
 ```{r}
+if (!requireNamespace("maps", quietly = TRUE)) install.packages("maps")
+library(maps)
 library(shiny)
 library(plotly)
 library(ggplot2)
 library(dplyr)
-
-
-# Data preparation
 
 # Data preparation
   data <- read.csv("/private/test.csv") # Adjust path as necessary
@@ -132,45 +132,65 @@ library(dplyr)
   
   joined_data <- data %>%
     right_join(world, by = c(Country = "region"))
-    
 
+# UI definition
 ui <- fluidPage(
-  titlePanel("Interactive World Map and Data Table"),
-  actionButton("toggle_fertility", "Countries below fertility rate "),
-  plotlyOutput("worldMap")
+  titlePanel("Interactive World Map"),
+  sidebarLayout(
+    sidebarPanel(
+      helpText("Adjust the slider to filter countries based on their fertility rate. Use the button to highlight countries with a fertility rate below 2.1."),
+      tags$p("Note: The slider marks at 2.1 represent the average fertility rate."),
+      sliderInput("fertility_range", "Fertility Rate Range:",
+                  min = 0,  # Preset min and max for simplicity, adjust based on your data
+                  max = 7,
+                  value = c(0, 7),
+                  step = 0.1),
+      actionButton("toggle_fertility", "Toggle Highlight Countries Below 2.1")
+    ),
+    mainPanel(
+      plotlyOutput("worldMap"),
+      plotlyOutput("barGraph") # Add bar graph output here
+    )
+  )
 )
 
+# Server logic
 server <- function(input, output, session) {
-  # Reactive value to track the toggle state
-  show_filtered <- reactiveVal(FALSE)
+  # Reactive value to track the toggle state for fertility below 2.1
+  highlight_low_fertility <- reactiveVal(FALSE)
   
-  # Observe the toggle button click
+  # Observe the toggle button click to update the reactive value
   observeEvent(input$toggle_fertility, {
-    # Toggle the state
-    current_state <- show_filtered()
-    show_filtered(!current_state)
+    highlight_low_fertility(!highlight_low_fertility())
   })
   
   output$worldMap <- renderPlotly({
-    # Conditional color mapping based on 'show_filtered()' state
-    color_mapping <- if(show_filtered()) {
-      aes(fill = ifelse(Fertility < 2.1, Fertility, NA))
-    } else {
-      aes(fill = Fertility)
-    }
+    # Conditionally modify the dataset based on the slider and toggle button state
+    filtered_data <- reactive({
+      dataset <- joined_data %>%
+        filter(Fertility >= input$fertility_range[1], Fertility <= input$fertility_range[2])
+      
+      if (highlight_low_fertility()) {
+        dataset <- dataset %>%
+          mutate(Fertility_highlight = ifelse(Fertility < 2.1, Fertility, NA))
+      } else {
+        dataset <- dataset %>%
+          mutate(Fertility_highlight = Fertility)
+      }
+      
+      dataset
+    })
     
-    mapa_animado_3 <- joined_data %>%
-      ggplot(aes(x = long, y = lat, group = group, text = hover_text)) +
-      geom_polygon(color = "white", size = 0.01, color_mapping) +
-      scale_fill_distiller(palette = "Spectral", name = "Fertility Rate",
-                           na.value = "grey", limits = range(joined_data$Fertility, na.rm = TRUE)) +
+    # Proceed with plotting using the reactively filtered dataset
+    mapa_animado_3 <- filtered_data() %>%
+      ggplot(aes(x = long, y = lat, group = group, fill = Fertility_highlight, text = hover_text)) +
+      geom_polygon(color = "white", size = 0.01) +
       theme_void() +
-      labs(title = "Population & Fertility Rate", subtitle = "year: 2022") +
-      theme(
-        plot.title = element_text(size = 12, hjust = 0.5),
-        plot.subtitle = element_text(size = 10, hjust = 0.5),
-        plot.caption = element_text(size = 8, hjust = 1)
-      ) +
+      scale_fill_distiller(palette = "Spectral", name = "Fertility Rate", na.value = "grey") +
+      labs(title = "Population & Fertility Rate", subtitle = "Filtered by year: 2022") +
+      theme(plot.title = element_text(size = 12, hjust = 0.5),
+            plot.subtitle = element_text(size = 10, hjust = 0.5),
+            plot.caption = element_text(size = 8, hjust = 1)) +
       coord_fixed(ratio = 1.3)
     
     ggplotly(mapa_animado_3, tooltip = "text")
@@ -181,9 +201,6 @@ shinyApp(ui, server)
 
 ```
 
-```{r}
-
-```
 
 
 
