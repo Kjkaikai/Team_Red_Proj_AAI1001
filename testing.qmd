@@ -2,6 +2,7 @@
 title: "Trying out world map"
 author: "Axel"
 format: html
+
 ---
 
 # Creating a interactive choropleth world map 
@@ -13,63 +14,131 @@ library(plotly)
 library(dplyr)
 library(ggthemes)
 library(RColorBrewer)
+library(crosstalk)
+library(DT)
+
+
+library(tidyverse)
+library(readxl)
+library(rmapshaper)
+library(sf)
 ```
 
 ```{r}
 world <- map_data("world") %>%
   filter(region != "Antarctica")
 
-##Search for USA or Russia
+
+```
+
+
+```{r}
+countries <-
+  "WB_countries_Admin0.geojson" |>
+  read_sf() |>
+  ms_simplify() |>
+  st_make_valid()
+
+land <-
+  "WB_Land.geojson" |>
+  read_sf() |>
+  ms_simplify() |>
+  st_cast("MULTIPOLYGON")
+
+polygon <- st_polygon(
+  x = list(rbind(
+    c(-180.0001, 90),
+    c(-179.9999, 90),
+    c(-179.9999, -90),
+    c(-180.0001, -90),
+    c(-180.0001, 90)
+  ))
+) |>
+  st_sfc() |>
+  st_set_crs(4326) # Equirectangular projection
+countries <-
+  countries |>
+  mutate(geometry = st_difference(geometry, polygon)) |>
+  st_make_valid()
+
+ggplot(countries) +
+  geom_sf(data = land, fill = "gray90") +
+  geom_sf(fill = "gray75") +
+  coord_sf(crs = st_crs("+proj=eqearth"))
 
 ```
 
 ```{r}
-data <- read.csv("clean.csv")
-data
+data <- read.csv("test.csv")
+head(data)
 
 
-data <- data |>
-  mutate(Fertility = as.numeric(Fertility))
-
-data
-
-
+data <- data %>%
+  mutate(Fertility = as.numeric(as.character(Fertility)))
+head(data)
 ```
+```{r}
 
 
+joined_data <- countries %>%
+  left_join(data, by = c("WB_A3" = "CountryCode"))
 
+joined_data 
+```
 
 ```{r}
-# Set figure dimensions
-#| fig.width=7
-#| fig.height=5
+earth <- st_polygon(
+  x = list(
+    cbind(
+      c(rep(-180, 181), rep(180, 181), -180), c(-90:90, 90:-90, -90)
+    )
+  )
+) |>
+  st_sfc() |>
+  st_set_crs(4326) |> # Equirectangular projection
+  st_as_sf()
 
 
 
-# Display all Brewer palettes
-display.brewer.all()
-
-# Filter Gapminder data and join with world map data
-  mapa_animado_3 <- data %>%
-  right_join(world, by = c(Country = "region")) %>%
-  ggplot(aes(long, lat, group = group, fill = `Fertility`)) +
-  geom_polygon(color = "white", size = 0.01) +
-  theme_void() +
-  scale_fill_distiller(palette = "Spectral", name = "Fertility Rate") + # Use a continuous palette
-  labs(title = "Population & Fertility Rate", subtitle = "year: 2022")  +
-  theme(
-    plot.title = element_text(size = 12, hjust = 0.5),
-    plot.subtitle = element_text(size = 10, hjust = 0.5),
-    plot.caption = element_text(size = 8, hjust = 1)
-  ) +
-  coord_fixed(ratio = 1.3)
-
-# Convert ggplot object to a ggplotly object
-fig_3 <- ggplotly(mapa_animado_3)
-
-fig_3
+ggplot(joined_data 
+) +
+  geom_sf(data = earth, fill = "aliceblue") +
+  geom_sf(data = land, fill = "gray90") +
+  geom_sf(fill = "gray75") +
+  geom_sf_text(aes(label = ""), size = 3) +
+  coord_sf(crs = st_crs("+proj=eqearth"))
 
 ```
+```{r}
 
+joined_data$hover_text <- paste("Country: ", joined_data$Country, "<br>Fertility Rate: ", joined_data$Fertility, "<br>Population: ", joined_data$Population)
+
+testabc <- 
+  ggplot(joined_data) +
+  geom_sf(data = earth, fill = "aliceblue") +
+  geom_sf(data = land, fill = "gray90") +
+  geom_sf(aes(fill = Fertility, text = hover_text), color = NA) + 
+  scale_fill_viridis_c(option = "C", direction = -1, name = "Fertility Rate") + 
+  coord_sf(crs = st_crs("+proj=eqearth")) +
+  theme_minimal() +
+  theme(legend.position = "right")
+
+fig_1 <- ggplotly(testabc, tooltip = "text") 
+
+fig_1
+```
+
+
+
+
+
+displaying my joined_data into a dataframe and remove repeated country names 
+```{r}
+joined_data <- joined_data %>%
+  distinct(Country, .keep_all = TRUE)
+
+datatable(joined_data, options = list(autoWidth = TRUE))
+
+```
 
 
