@@ -263,12 +263,6 @@ added in
 
 
 
-```{r}
-world <- map_data("world") %>%
-  filter(region != "Antarctica")
-
-
-```
 
 
 ```{r}
@@ -305,9 +299,6 @@ countries <-
 ```
 
 ```{r}
-data <- read.csv("test.csv")
-
-
 
 data <- data %>%
   mutate(Fertility = as.numeric(as.character(Fertility)))
@@ -359,4 +350,58 @@ fig_1
 ```
 
 
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Interactive World Map"),
+  sidebarLayout(
+    sidebarPanel(
+      helpText("Adjust the slider to filter countries based on their fertility rate. Use the button to highlight countries with a fertility rate below 2.1."),
+      tags$p("Note: The slider marks at 2.1 represent the average fertility rate."),
+      sliderInput("fertility_range", "Fertility Rate Range:",
+                  min = 0,  # Preset min and max for simplicity, adjust based on your data
+                  max = 7,
+                  value = c(0, 7),
+                  step = 0.1),
+      actionButton("toggle_fertility", "Toggle Highlight Countries Below 2.1")
+    ),
+    mainPanel(
+      plotlyOutput("worldMap")  
+    )
+  )
+)
+
+
+server <- function(input, output, session) {
+  highlight_low_fertility <- reactiveVal(FALSE)
+
+  observeEvent(input$toggle_fertility, {
+    highlight_low_fertility(!highlight_low_fertility())
+  })
+  
+  output$worldMap <- renderPlotly({
+    filtered_data <- joined_data %>%
+      filter(Fertility >= input$fertility_range[1], Fertility <= input$fertility_range[2])
+      
+    if (highlight_low_fertility()) {
+      filtered_data$Fertility[filtered_data$Fertility >= 2.1] <- NA
+    }
+    
+    testabc <- 
+      ggplot(filtered_data) +
+      geom_sf(data = earth, fill = "aliceblue") +
+      geom_sf(data = land, fill = "gray90") +
+      geom_sf(aes(fill = Fertility, text = hover_text), color = NA) +
+      scale_fill_viridis_c(option = "C", direction = -1, name = "Fertility Rate", limits = c(0, 7), na.value = "gray90") + 
+      coord_sf(crs = st_crs("+proj=eqearth")) +
+      theme_minimal() +
+      theme(legend.position = "right")
+    
+    ggplotly(testabc, tooltip = "text")
+  })
+}
+
+# Run the application
+shinyApp(ui, server)
+```
 
