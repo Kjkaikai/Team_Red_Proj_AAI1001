@@ -299,7 +299,7 @@ joined_data <- countries %>%
   left_join(data, by = c("WB_A3" = "CountryCode"))
 ```
 
-## Plotting on ggplotly
+## Plotting on Ggplotly
 
 ```{r}
 #| echo: false
@@ -319,13 +319,19 @@ fig_4 <-
       na.value = "gray90",
       guide = "colorbar" 
     ) +
+  labs(title = "Population & Fertility Rate", subtitle = "year: 2022") +
   coord_sf(crs = st_crs("+proj=eqearth")) +
   theme_minimal() +
-  theme(legend.position = "right")
+  theme(
+    legend.position = "right",
+    plot.title = element_text(hjust = 0.5), 
+    plot.subtitle = element_text(hjust = 0.5) # Center the subtitle
+  )
 
 fig_5 <- ggplotly(fig_4, tooltip = "text") 
 
 fig_5
+
 ```
 
 ## Additions to the Plot
@@ -372,7 +378,7 @@ ui <- fluidPage(
     ),
 mainPanel(
   div(style = "border: 1px solid #ccc; padding: 20px; margin-bottom: 20px;",
-      plotlyOutput("worldMap", height = "600px")), # Output for the world map 
+      plotlyOutput("worldMap")), # Output for the world map 
   div(style = "border: 1px solid #ccc; padding: 20px; margin-bottom: 20px;",
       plotlyOutput("popBarGraph")), # Output for the line graph 
   div(style = "border: 1px solid #ccc; padding: 20px;overflow-x: auto; overflow-x: auto;",
@@ -396,28 +402,32 @@ server <- function(input, output, session) {
       filtered_data$Fertility[filtered_data$Fertility >= 2.1] <- NA
     }
 
-    fig_4 <- 
-      ggplot(filtered_data) +
-      geom_sf(data = earth, fill = "aliceblue") +
-      geom_sf(data = land, fill = "gray90") +
-      geom_sf(aes(fill = Fertility, text = hover_text), color = NA) +
-      scale_fill_viridis_c(option = "C", direction = -1, name = "Fertility Rate", limits = c(0, 7), na.value = "gray90") +
-      scale_fill_fermenter(
-        limits = c(0, 7),
-        n.breaks = 6,
-        palette = "YlOrBr",
-        direction = -1,
-        na.value = "gray90",
-        guide = "colorbar"
-      ) + 
-      coord_sf(crs = st_crs("+proj=eqearth")) +
-      theme_minimal() +
-      theme(
-        legend.position = "right",
-        axis.text.x = element_text(angle = 0)
-      )
+fig_4 <- 
+  ggplot(filtered_data) +
+  geom_sf(data = earth, fill = "aliceblue") +
+  geom_sf(data = land, fill = "gray90") +
+  geom_sf(aes(fill = Fertility, text = hover_text), color = NA) +
+  labs(title = "Population & Fertility Rate", subtitle = "year: 2022") +
+  scale_fill_viridis_c(option = "C", direction = -1, name = "Fertility Rate", limits = c(0, 7), na.value = "gray90") +
+  scale_fill_fermenter(
+    limits = c(0, 7),
+    n.breaks = 6,
+    palette = "YlOrBr",
+    direction = -1,
+    na.value = "gray90",
+    guide = "colorbar"
+  ) + 
+  coord_sf(crs = st_crs("+proj=eqearth")) +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    axis.text.x = element_text(angle = 0),
+    plot.title = element_text(hjust = 0.5),  # This centers the plot title
+    plot.subtitle = element_text(hjust = 0.5) # This centers the plot subtitle
+  )
 
-    ggplotly(fig_4, tooltip = "text")
+ggplotly(fig_4, tooltip = "text")
+
   })
 
 output$popBarGraph <- renderPlotly({
