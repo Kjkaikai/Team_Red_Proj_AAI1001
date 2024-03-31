@@ -282,8 +282,8 @@ output$popBarGraph <- renderPlotly({
 
   # Plot the line graph
   line_plot <- ggplot(line_data, aes(x = Fertility_bin, y = Population, text = paste("Countries Count: ", Country_Count), group = 1)) +
-    geom_line(color = "blue") + # Add a line
-    geom_point(color = "red") + # Add points
+    geom_line(color = "#0570b0") + # Add a line
+    geom_point(color = "#cc4c02") + # Add points
     labs(x = "Fertility Rate", y = "Population") +
     theme_minimal() +
     theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + # Rotate x-axis labels for better readability
