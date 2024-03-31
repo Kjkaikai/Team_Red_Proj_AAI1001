@@ -11,7 +11,7 @@ library(plotly)
 library(ggthemes)
 library(RColorBrewer)
 library(crosstalk)
-library(DT)
+library(DT) # To load data tables
 library(tidyverse) # Include ggplot2, dpylr
 library(readxl)
 library(rmapshaper)
@@ -20,13 +20,7 @@ library(maps)
 library(shiny)
 ```
 
-# To exclude Antarctica from the map
-```{r}
-world <- map_data("world") %>%
-  filter(region != "Antarctica")
-```
-
-# Cleaning and processing of data, output top 5 rows
+# Cleaning and processing of data, output top 6 rows
 ```{r}
 data <- read.csv("test.csv")
 head(data)
@@ -34,39 +28,12 @@ head(data)
 data <- data %>%
   mutate(Fertility = as.numeric(as.character(Fertility)))
 head(data)
+
+world <- map_data("world")
 ```
-
-# Baseline structure for the Map 
 ```{r}
-
-#| include = FALSE
-# Set figure dimensions
-#| fig.width=7
-#| fig.height=5
-
 # Display all Brewer palettes
 display.brewer.all()
-
-# Filter Gapminder data and join with world map data
-  mapa_animado_3 <- data %>%
-  right_join(world, by = c(Country = "region")) %>%
-  ggplot(aes(long, lat, group = group, fill = `Fertility`)) +
-  geom_polygon(color = "white", size = 0.01) +
-  theme_void() +
-  scale_fill_distiller(palette = "Spectral", name = "Fertility Rate") + # Use a continuous palette
-  labs(title = "Population & Fertility Rate", subtitle = "year: 2022")  +
-  theme(
-    plot.title = element_text(size = 12, hjust = 0.5),
-    plot.subtitle = element_text(size = 10, hjust = 0.5),
-    plot.caption = element_text(size = 8, hjust = 1)
-  ) +
-  coord_fixed(ratio = 1.3)
-
-# Convert ggplot object to a ggplotly object
-fig_3 <- ggplotly(mapa_animado_3)
-
-fig_3
-
 ```
 
 # Add hovertext with data and data Frame 
@@ -136,116 +103,13 @@ fig_3
 
 ```
 
-# Display my joined_data into a dataframe and remove repeated country names 
-```{r}
-
-joined_data <- data %>%
-  right_join(world, by = c(Country = "region")) %>%
-    distinct(Country, .keep_all = TRUE)
-
-datatable(joined_data, options = list(autoWidth = TRUE))
-
-```
-
-# Addition of Animation with Shiny
-```{r}
-# Data preparation
-  data <- read.csv("test.csv")
-  data <- data %>%
-    mutate(Fertility = as.numeric(as.character(Fertility)),
-  hover_text = paste("Country: ", Country, "<br>Fertility Rate: ", Fertility, "<br>Population: ", Population))  # Add 'hover_text' here after 'data' is defined
-
-# UI definition
-  
-  world <- map_data("world") %>%
-    filter(region != "Antarctica")
-  
-  joined_data <- data %>%
-    right_join(world, by = c(Country = "region"))
-
-# UI definition
-ui <- fluidPage(
-  titlePanel("Interactive World Map"),
-  sidebarLayout(
-    sidebarPanel(
-      helpText("Adjust the slider to filter countries based on their fertility rate. Use the button to highlight countries with a fertility rate below 2.1."),
-      tags$p("Note: The slider marks at 2.1 represent the average fertility rate."),
-      sliderInput("fertility_range", "Fertility Rate Range:",
-                  min = 0,  
-                  max = 7,
-                  value = c(0, 7),
-                  step = 0.1),
-      actionButton("toggle_fertility", "Toggle Highlight Countries Below 2.1")
-    ),
-    mainPanel(
-      plotlyOutput("worldMap"),
-      plotlyOutput("barGraph") 
-    )
-  )
-)
-
-# Server logic
-server <- function(input, output, session) {
-  # Reactive value to track the toggle state for fertility below 2.1
-  highlight_low_fertility <- reactiveVal(FALSE)
-  
-  # Observe the toggle button click to update the reactive value
-  observeEvent(input$toggle_fertility, {
-    highlight_low_fertility(!highlight_low_fertility())
-  })
-  
-  output$worldMap <- renderPlotly({
-    # Conditionally modify the dataset based on the slider and toggle button state
-    filtered_data <- reactive({
-      dataset <- joined_data %>%
-        filter(Fertility >= input$fertility_range[1], Fertility <= input$fertility_range[2])
-      if (highlight_low_fertility()) {
-        dataset$Fertility <- ifelse(dataset$Fertility < 2.1, dataset$Fertility, NA)
-      }
-      dataset
-    })
-    
-    # Define the static breaks and corresponding colors
-    colors <- colorRampPalette(rev(brewer.pal(9, name = "YlOrRd")))(7)
-    
-    # Proceed with plotting using the reactively filtered dataset
-    mapa_animado_3 <- ggplot(filtered_data(), aes(x = long, y = lat, group = group, fill = Fertility, text = hover_text)) +
-      geom_polygon(color = "white", size = 0.01) +
-      theme_void() +
-      scale_fill_fermenter(
-      limits = c(0, 7),
-      n.breaks = 6,
-      palette = "YlOrBr",
-      direction = -1,
-      na.value = "gray90",
-      guide = "colorbar" 
-    ) +
-      labs(
-        title = "Population & Fertility Rate",
-        subtitle = "Filtered by year: 2022"
-      ) +
-      theme(
-        plot.title = element_text(size = 12, hjust = 0.5),
-        plot.subtitle = element_text(size = 10, hjust = 0.5),
-        plot.caption = element_text(size = 8, hjust = 1)
-      ) +
-      coord_fixed(ratio = 1.3)
-
-    ggplotly(mapa_animado_3, tooltip = "text")
-  })
-}
-
-shinyApp(ui, server)
-
-```
-
 # Add world boundaries and land to the map with geojson files
 ```{r}
 countries <-
   "borders/WB_countries_Admin0.geojson" |>
   read_sf() |>
   ms_simplify() |>
-  st_make_valid()
+  st_make_valid() 
 
 land <-
   "borders/WB_Land.geojson" |>
@@ -268,18 +132,7 @@ countries <-
   countries |>
   mutate(geometry = st_difference(geometry, polygon)) |>
   st_make_valid()
-```
 
-# Convert the 'Fertility' column to a numeric type.
-```{r}
-data <- data %>%
-  mutate(Fertility = as.numeric(as.character(Fertility)))
-```
-
-# Left join to Country Code
-```{r}
-joined_data <- countries %>%
-  left_join(data, by = c("WB_A3" = "CountryCode"))
 ```
 
 # Create a polygon object to represent the Earth's outline. 
@@ -296,10 +149,29 @@ earth <- st_polygon(
   st_as_sf()
 ```
 
+# Join the data with the country code and convert the 'Fertility' column to numeric
+```{r}
+# Convert the 'Fertility' column to a numeric type.
+data <- data %>%
+  mutate(Fertility = as.numeric(as.character(Fertility))) 
+
+# Left join to Country Code
+joined_data <- countries %>%
+  left_join(data, by = c("WB_A3" = "CountryCode"))
+```
+
+# Select the columns to display in the data table
+```{r}
+# Assuming joined_data is your initial dataset
+selected_data <- joined_data %>%
+  select(REGION_WB, GDP_MD_EST, WB_NAME, NAME_ZH, CONTINENT, POP_EST, Fertility, Population)
+
+# Render the DataTable with selected columns
+datatable(selected_data, options = list(autoWidth = TRUE))
+```
+
 # Plot map on ggplotly
 ```{r}
-joined_data$hover_text <- paste("Country: ", joined_data$Country, "<br>Fertility Rate: ", joined_data$Fertility, "<br>Population: ", joined_data$Population)
-
 fig_4 <- 
   ggplot(joined_data) +
   geom_sf(data = earth, fill = "aliceblue") +
@@ -323,92 +195,35 @@ fig_5 <- ggplotly(fig_4, tooltip = "text")
 fig_5
 ```
 
-# Plot map onto shiny app
+
+# Addition of a line graph and data table to the shiny app
 ```{r}
+# Declaring Hover Text
+joined_data$hover_text <- paste("Country: ", joined_data$Country, "<br>Fertility Rate: ", joined_data$Fertility, "<br>Population: ", joined_data$Population)
+
 ui <- fluidPage(
   titlePanel("Interactive World Map"),
   sidebarLayout(
     sidebarPanel(
+      helpText(tags$b("A rate of about 2.1 is known as Replacement Fertility because the population would stabilize if every two people had two children.")),
       helpText("Adjust the slider to filter countries based on their fertility rate. Use the button to highlight countries with a fertility rate below 2.1."),
-      tags$p("Note: The slider marks at 2.1 represent the average fertility rate."),
-      sliderInput("fertility_range", "Fertility Rate Range:",
-                  min = 0,  # Preset min and max for simplicity, adjust based on your data
-                  max = 7,
-                  value = c(0, 7),
-                  step = 0.1),
-      actionButton("toggle_fertility", "Toggle Highlight Countries Below 2.1")
-    ),
-    mainPanel(
-      plotlyOutput("worldMap"),
-    )
-  )
-)
-
-server <- function(input, output, session) {
-  highlight_low_fertility <- reactiveVal(FALSE)
-
-  observeEvent(input$toggle_fertility, {
-    highlight_low_fertility(!highlight_low_fertility())
-  })
-  
-  output$worldMap <- renderPlotly({
-    filtered_data <- joined_data %>%
-      filter(Fertility >= input$fertility_range[1], Fertility <= input$fertility_range[2])
-      
-    if (highlight_low_fertility()) {
-      filtered_data$Fertility[filtered_data$Fertility >= 2.1] <- NA
-    }
-    
-    fig_4 <- 
-      ggplot(filtered_data) +
-      geom_sf(data = earth, fill = "aliceblue") +
-      geom_sf(data = land, fill = "gray90") +
-      geom_sf(aes(fill = Fertility, text = hover_text), color = NA) +
-      scale_fill_viridis_c(option = "C", direction = -1, name = "Fertility Rate", limits = c(0, 7), na.value = "gray90") +
-      scale_fill_fermenter(
-        limits = c(0, 7),
-        n.breaks = 6,
-        palette = "YlOrBr",
-        direction = -1,
-        na.value = "gray90",
-        guide = "colorbar" 
-      ) + 
-      coord_sf(crs = st_crs("+proj=eqearth")) +
-      theme_minimal() +
-      theme(
-        legend.position = "right",
-        axis.text.x = element_text(angle = 0) 
-      )
-    
-    ggplotly(fig_4, tooltip = "text")
-  })
-}
-
-# Run the application
-shinyApp(ui, server)
-```
-
-kj
-```{r}
-# Plot map onto shiny app
-ui <- fluidPage(
-  titlePanel("Interactive World Map"),
-  sidebarLayout(
-    sidebarPanel(
-      helpText("Adjust the slider to filter countries based on their fertility rate. Use the button to highlight countries with a fertility rate below 2.1."),
-      tags$p("Note: The slider marks at 2.1 represent the average fertility rate."),
+      tags$p("Note: The slider mark at 2.1 represent the Replacement Fertility rate."),
       sliderInput("fertility_range", "Fertility Rate Range:",
                   min = 0,
                   max = 7,
                   value = c(0, 7),
                   step = 0.1),
-      actionButton("toggle_fertility", "Toggle Highlight Countries Below 2.1")
+      actionButton("toggle_fertility", "Countries Below Replacement Fertility")
     ),
-    mainPanel(
-      plotlyOutput("worldMap"),
-      plotlyOutput("popBarGraph") # Output for the line graph
-    )
-  )
+mainPanel(
+  div(style = "border: 1px solid #ccc; padding: 20px; margin-bottom: 20px;",
+      plotlyOutput("worldMap", height = "600px")), # Output for the world map 
+  div(style = "border: 1px solid #ccc; padding: 20px; margin-bottom: 20px;",
+      plotlyOutput("popBarGraph")), # Output for the line graph 
+  div(style = "border: 1px solid #ccc; padding: 20px;overflow-x: auto; overflow-x: auto;",
+      DTOutput("countryTable")) # Output for the data table 
+)
+)
 )
 
 server <- function(input, output, session) {
@@ -477,12 +292,17 @@ output$popBarGraph <- renderPlotly({
   # Add tooltips for hover-over interaction
   ggplotly(line_plot, tooltip = "text")
 })
+
+# Render the data table
+output$countryTable <- renderDT({
+  selected_data 
+})
 }
 
 # Run the Shiny app
 shinyApp(ui, server)
-
 ```
+
 
 
 
