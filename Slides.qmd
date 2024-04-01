@@ -9,6 +9,7 @@ output: slidy_presentation
 ---
 
 ```{r}
+#| label: setup
 #| echo: false
 #| message: false
 #| warning: false
@@ -41,7 +42,7 @@ library(knitr)
 #| echo: false
 #| message: false
 #| warning: false
-#| 
+#|
 #| fig-cap: "Source: U.N. World Population Prospects 2022. Note: Only countries with at least one million people are included."
 
 ## include graphic size to 50% of slide, align left
@@ -49,7 +50,6 @@ library(knitr)
 #| align: left
 # out.width="10%", fig.retina = 1 fig.align='left'
 knitr::include_graphics("NYT1.jpeg")
-
 ```
 
 ## Chosen Data Visualisation Example (Part 2)
@@ -65,7 +65,6 @@ knitr::include_graphics("NYT1.jpeg")
 #| align: left
 # out.width="10%", fig.retina = 1 fig.align='left'
 knitr::include_graphics("NYT2.jpeg")
-
 ```
 
 ## General
@@ -79,12 +78,12 @@ knitr::include_graphics("NYT2.jpeg")
 
 ::: {.column width="65%"}
 ```{r}
+#| label: shownyt1
 #| echo: false
 #| message: false
 #| warning: false
 
 include_graphics("NYT1.jpeg")
-
 ```
 :::
 ::::
@@ -99,12 +98,12 @@ include_graphics("NYT1.jpeg")
 
 ::: {.column width="65%"}
 ```{r}
+#| label: shownyt2
 #| echo: false
 #| message: false
 #| warning: false
 
 include_graphics("NYT2.jpeg")
-
 ```
 :::
 ::::
@@ -134,19 +133,19 @@ include_graphics("NYT2.jpeg")
 ## Cleaning and processing of data, output top 6 rows
 
 ```{r}
+#| label: cleandata
 #| echo: false
 #| message: false
 #| warning: false
 
 data <- read.csv("test.csv")
-  
+
 
 data <- data %>%
   mutate(Fertility = as.numeric(as.character(Fertility)))
 head(data)
 
 world <- map_data("world")
-
 ```
 
 ## Data Preparation Process (Geographic Data) {.smaller}
@@ -170,23 +169,26 @@ world <- map_data("world")
 ## Initial Plot
 
 ```{r}
+#| label: initial plot
 #| echo: false
 #| message: false
 #| warning: false
 
 # Create a hover text column in 'data'
-data$hover_text <- paste("Country: ", data$Country, "<br>Fertility Rate: ", data$Fertility, "<br>Population: ", data$Population)
+data$hover_text <- paste("Country: ", data$Country, "<br>Fertility Rate: ",
+                         data$Fertility, "<br>Population: ", data$Population)
 
 joined_data <- data %>%
-  right_join(world, by = c(Country = "region")) 
+  right_join(world, by = c(Country = "region"))
 
 # Plotting with hover text
 mapa_animado_3 <- joined_data %>%
-  ggplot(aes(x = long, y = lat, group = group, fill = Fertility, text = hover_text)) + # Added 'text' aesthetic for custom hover info
+  ggplot(aes(x = long, y = lat, group = group, fill = Fertility,
+             text = hover_text)) + # Added 'text' for custom hover info
   geom_polygon(color = "white", size = 0.01) +
   theme_void() +
-  scale_fill_distiller(palette = "Spectral", name = "Fertility Rate") + 
-  labs(title = "Population & Fertility Rate", subtitle = "year: 2022")  +
+  scale_fill_distiller(palette = "Spectral", name = "Fertility Rate") +
+  labs(title = "Population & Fertility Rate", subtitle = "year: 2022") +
   theme(
     plot.title = element_text(size = 12, hjust = 0.5),
     plot.subtitle = element_text(size = 10, hjust = 0.5),
@@ -197,21 +199,22 @@ mapa_animado_3 <- joined_data %>%
 # Convert ggplot object to a ggplotly object with hoverinfo
 fig_3 <- ggplotly(mapa_animado_3, tooltip = "text")
 fig_3
-
 ```
 
 ## After adding ColorBrewer's colour palette to the map
 
 ```{r}
+#| label: addcolorbrewer
 #| echo: false
 #| message: false
 #| warning: false
 
 # Create a hover text column in 'data'
-data$hover_text <- paste("Country: ", data$Country, "<br>Fertility Rate: ", data$Fertility, "<br>Population: ", data$Population)
+data$hover_text <- paste("Country: ", data$Country, "<br>Fertility Rate: ",
+                         data$Fertility, "<br>Population: ", data$Population)
 
 joined_data <- data %>%
-  right_join(world, by = c(Country = "region")) 
+  right_join(world, by = c(Country = "region"))
 
 # Define the breaks and corresponding colors manually for "YlOrRd"
 breaks <- c(0, 1, 2, 3, 4, 5, 6, 7)
@@ -219,17 +222,18 @@ colors <- colorRampPalette(rev(brewer.pal(9, "YlOrRd")))(length(breaks) - 1)
 
 # Plot
 mapa_animado_3 <- joined_data %>%
-  ggplot(aes(x = long, y = lat, group = group, fill = Fertility, text = hover_text)) +
+  ggplot(aes(x = long, y = lat, group = group, fill = Fertility,
+             text = hover_text)) +
   geom_polygon(color = "white", size = 0.01) +
   theme_void() +
-      scale_fill_fermenter(
-        limits = c(0, 7),
-        n.breaks = 6,
-        palette = "YlOrBr",
-        direction = -1,
-        na.value = "gray90",
-        guide = "colorbar"
-      )  +
+  scale_fill_fermenter(
+    limits = c(0, 7),
+    n.breaks = 6,
+    palette = "YlOrBr",
+    direction = -1,
+    na.value = "gray90",
+    guide = "colorbar"
+  ) +
   labs(title = "Population & Fertility Rate", subtitle = "year: 2022") +
   theme(
     plot.title = element_text(size = 12, hjust = 0.5),
@@ -246,7 +250,7 @@ countries <-
   "borders/WB_countries_Admin0.geojson" |>
   read_sf() |>
   ms_simplify() |>
-  st_make_valid() 
+  st_make_valid()
 
 land <-
   "borders/WB_Land.geojson" |>
@@ -269,15 +273,15 @@ countries <-
   countries |>
   mutate(geometry = st_difference(geometry, polygon)) |>
   st_make_valid()
-
 ```
 
 ```{r}
+#| label: joindata
 #| echo: false
 #| message: false
 #| warning: false
 
-# Join the data with the country code and convert the 'Fertility' column to numeric
+# Join the data with country code and convert the 'Fertility' column to numeric
 earth <- st_polygon(
   x = list(
     cbind(
@@ -289,10 +293,10 @@ earth <- st_polygon(
   st_set_crs(4326) |> # Equirectangular projection
   st_as_sf()
 
-# Join the data with the country code and convert the 'Fertility' column to numeric
+# Join the data with country code and convert the 'Fertility' column to numeric
 # Convert the 'Fertility' column to a numeric type.
 data <- data %>%
-  mutate(Fertility = as.numeric(as.character(Fertility))) 
+  mutate(Fertility = as.numeric(as.character(Fertility)))
 
 # Left join to Country Code
 joined_data <- countries %>%
@@ -302,36 +306,36 @@ joined_data <- countries %>%
 ## Plotting on Ggplotly
 
 ```{r}
+#| label: ggplotlyplot
 #| echo: false
 #| message: false
 #| warning: false
-fig_4 <- 
+fig_4 <-
   ggplot(joined_data) +
   geom_sf(data = earth, fill = "aliceblue") +
   geom_sf(data = land, fill = "gray90") +
-  geom_sf(aes(fill = Fertility, text = hover_text), color = NA) + 
-  scale_fill_viridis_c(option = "C", direction = -1, name = "Fertility Rate") + 
+  geom_sf(aes(fill = Fertility, text = hover_text), color = NA) +
+  scale_fill_viridis_c(option = "C", direction = -1, name = "Fertility Rate") +
   scale_fill_fermenter(
-      limits = c(0, 7),
-      n.breaks = 6,
-      palette = "YlOrBr",
-      direction = -1,
-      na.value = "gray90",
-      guide = "colorbar" 
-    ) +
+    limits = c(0, 7),
+    n.breaks = 6,
+    palette = "YlOrBr",
+    direction = -1,
+    na.value = "gray90",
+    guide = "colorbar"
+  ) +
   labs(title = "Population & Fertility Rate", subtitle = "year: 2022") +
   coord_sf(crs = st_crs("+proj=eqearth")) +
   theme_minimal() +
   theme(
     legend.position = "right",
-    plot.title = element_text(hjust = 0.5), 
+    plot.title = element_text(hjust = 0.5),
     plot.subtitle = element_text(hjust = 0.5) # Center the subtitle
   )
 
-fig_5 <- ggplotly(fig_4, tooltip = "text") 
+fig_5 <- ggplotly(fig_4, tooltip = "text")
 
 fig_5
-
 ```
 
 ## Additions to the Plot
@@ -352,15 +356,20 @@ fig_5
 ## Final Visualisation Demo
 
 ```{r}
+#| label: fullshinyapplication
 #| echo: false
 #| message: false
 #| warning: false
 
 # Declaring Hover Text
 
-joined_data$hover_text <- paste("Country: ", joined_data$Country, "<br>Fertility Rate: ", joined_data$Fertility, "<br>Population: ", joined_data$Population)
+joined_data$hover_text <- paste("Country: ", joined_data$Country,
+                                "<br>Fertility Rate: ",
+                                joined_data$Fertility, "<br>Population: ",
+                                joined_data$Population)
 selected_data <- joined_data %>%
-  select(REGION_WB, GDP_MD_EST, WB_NAME, NAME_ZH, CONTINENT, POP_EST, Fertility, Population)
+  select(REGION_WB, GDP_MD_EST, WB_NAME, NAME_ZH, CONTINENT,
+         POP_EST, Fertility, Population)
 
 ui <- fluidPage(
   titlePanel("Interactive World Map"),
@@ -370,21 +379,29 @@ ui <- fluidPage(
       helpText("Adjust the slider to filter countries based on their fertility rate. Use the button to highlight countries with a fertility rate below 2.1."),
       tags$p("Note: The slider mark at 2.1 represent the Replacement Fertility rate."),
       sliderInput("fertility_range", "Fertility Rate Range:",
-                  min = 0,
-                  max = 7,
-                  value = c(0, 7),
-                  step = 0.1),
+        min = 0,
+        max = 7,
+        value = c(0, 7),
+        step = 0.1
+      ),
       actionButton("toggle_fertility", "Countries Below Replacement Fertility")
     ),
-mainPanel(
-  div(style = "border: 1px solid #ccc; padding: 20px; margin-bottom: 20px;",
-      plotlyOutput("worldMap")), # Output for the world map 
-  div(style = "border: 1px solid #ccc; padding: 20px; margin-bottom: 20px;",
-      plotlyOutput("popBarGraph")), # Output for the line graph 
-  div(style = "border: 1px solid #ccc; padding: 20px;overflow-x: auto; overflow-x: auto;",
-      DTOutput("countryTable")) # Output for the data table 
-)
-)
+    mainPanel(
+      div(
+        style = "border: 1px solid #ccc; padding: 20px; margin-bottom: 20px;",
+        plotlyOutput("worldMap")
+      ), # Output for the world map
+      div(
+        style = "border: 1px solid #ccc; padding: 20px; margin-bottom: 20px;",
+        plotlyOutput("popBarGraph")
+      ), # Output for the line graph
+      div(
+        style = "border: 1px solid #ccc; padding: 20px;overflow-x: auto; 
+        overflow-x: auto;",
+        DTOutput("countryTable")
+      ) # Output for the data table
+    )
+  )
 )
 
 server <- function(input, output, session) {
@@ -396,75 +413,80 @@ server <- function(input, output, session) {
 
   output$worldMap <- renderPlotly({
     filtered_data <- joined_data %>%
-      filter(Fertility >= input$fertility_range[1], Fertility <= input$fertility_range[2])
+      filter(Fertility >= input$fertility_range[1],
+             Fertility <= input$fertility_range[2])
 
     if (highlight_low_fertility()) {
       filtered_data$Fertility[filtered_data$Fertility >= 2.1] <- NA
     }
 
-fig_4 <- 
-  ggplot(filtered_data) +
-  geom_sf(data = earth, fill = "aliceblue") +
-  geom_sf(data = land, fill = "gray90") +
-  geom_sf(aes(fill = Fertility, text = hover_text), color = NA) +
-  labs(title = "Population & Fertility Rate", subtitle = "year: 2022") +
-  scale_fill_viridis_c(option = "C", direction = -1, name = "Fertility Rate", limits = c(0, 7), na.value = "gray90") +
-  scale_fill_fermenter(
-    limits = c(0, 7),
-    n.breaks = 6,
-    palette = "YlOrBr",
-    direction = -1,
-    na.value = "gray90",
-    guide = "colorbar"
-  ) + 
-  coord_sf(crs = st_crs("+proj=eqearth")) +
-  theme_minimal() +
-  theme(
-    legend.position = "right",
-    axis.text.x = element_text(angle = 0),
-    plot.title = element_text(hjust = 0.5),  # This centers the plot title
-    plot.subtitle = element_text(hjust = 0.5) # This centers the plot subtitle
-  )
+    fig_4 <-
+      ggplot(filtered_data) +
+      geom_sf(data = earth, fill = "aliceblue") +
+      geom_sf(data = land, fill = "gray90") +
+      geom_sf(aes(fill = Fertility, text = hover_text), color = NA) +
+      labs(title = "Population & Fertility Rate", subtitle = "year: 2022") +
+      scale_fill_viridis_c(option = "C", direction = -1,
+                           name = "Fertility Rate", limits = c(0, 7),
+                           na.value = "gray90") +
+      scale_fill_fermenter(
+        limits = c(0, 7),
+        n.breaks = 6,
+        palette = "YlOrBr",
+        direction = -1,
+        na.value = "gray90",
+        guide = "colorbar"
+      ) +
+      coord_sf(crs = st_crs("+proj=eqearth")) +
+      theme_minimal() +
+      theme(
+        legend.position = "right",
+        axis.text.x = element_text(angle = 0),
+        plot.title = element_text(hjust = 0.5), # This centers plot title
+        plot.subtitle = element_text(hjust = 0.5) # This centers plot subtitle
+      )
 
-ggplotly(fig_4, tooltip = "text")
-
+    ggplotly(fig_4, tooltip = "text")
   })
 
-output$popBarGraph <- renderPlotly({
-  # Filter data based on fertility range input
-  filtered_data <- joined_data %>%
-    filter(Fertility >= input$fertility_range[1], Fertility <= input$fertility_range[2])
+  output$popBarGraph <- renderPlotly({
+    # Filter data based on fertility range input
+    filtered_data <- joined_data %>%
+      filter(Fertility >= input$fertility_range[1],
+             Fertility <= input$fertility_range[2])
 
-  # Aggregate data for the line graph and count the number of countries
-  line_data <- filtered_data %>%
-    group_by(Fertility_bin = cut_width(Fertility, 0.5)) %>%
-    summarize(
-      Population = sum(Population, na.rm = TRUE),
-      Country_Count = n() # Count the number of countries in each bin
-    ) %>%
-    ungroup() %>%
-    arrange(Fertility_bin) # Ensure data is ordered
+    # Aggregate data for the line graph and count the number of countries
+    line_data <- filtered_data %>%
+      group_by(Fertility_bin = cut_width(Fertility, 0.5)) %>%
+      summarize(
+        Population = sum(Population, na.rm = TRUE),
+        Country_Count = n() # Count the number of countries in each bin
+      ) %>%
+      ungroup() %>%
+      arrange(Fertility_bin) # Ensure data is ordered
 
-  # Plot the line graph
-  line_plot <- ggplot(line_data, aes(x = Fertility_bin, y = Population, text = paste("Countries Count: ", Country_Count), group = 1)) +
-    geom_line(color = "#0570b0") + # Add a line
-    geom_point(color = "#cc4c02") + # Add points
-    labs(x = "Fertility Rate", y = "Population") +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + # Rotate x-axis labels for better readability
-    scale_y_continuous(labels = scales::comma_format()) # Format y-axis labels to display population in comma-separated format
+    # Plot the line graph
+    line_plot <- ggplot(line_data,
+                        aes(x = Fertility_bin, y = Population,
+                            text = paste("Countries Count: ", Country_Count),
+                            group = 1)) +
+      geom_line(color = "#0570b0") + # Add a line
+      geom_point(color = "#cc4c02") + # Add points
+      labs(x = "Fertility Rate", y = "Population") +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+      scale_y_continuous(labels = scales::comma_format())
 
-  # Add tooltips for hover-over interaction
-  ggplotly(line_plot, tooltip = "text")
-})
+    # Add tooltips for hover-over interaction
+    ggplotly(line_plot, tooltip = "text")
+  })
 
-# Render the data table
-output$countryTable <- renderDT({
-  selected_data 
-})
+  # Render the data table
+  output$countryTable <- renderDT({
+    selected_data
+  })
 }
 
 # Run the Shiny app
 shinyApp(ui, server)
-
 ```
